@@ -87,16 +87,26 @@ cd "$WORKSPACE_ROOT"
 npm install
 ```
 
-Then set up credentials. Show the user the API-key dashboard link:
+Then set up credentials.
 
-> "Open https://agent-dash-groundco.vercel.app/settings?tab=api and generate an API key. Paste it here when you have it, and I'll drop it into your `.env` file."
+**First, check if the user's original message already contains an API key.** The key format is `vad_` followed by a long alphanumeric string. If Settings → Claude Code on the dashboard generated the install instructions, the message will include a line like:
 
-When they paste the key:
+> `Use this as my EXODUS_API_KEY: vad_XyZ123...`
+
+If a key is present in the message → use it directly. Skip to the "Write the .env file" step below.
+
+If no key is present → ask the user:
+
+> "I'll need an API key to finish setup. Open https://agent-dash-groundco.vercel.app/settings?tab=claude-code and click **Copy install instructions** — that generates a key. Or go to Settings → API Keys, generate one manually, and paste it here."
+
+Wait for them to paste the key before continuing.
+
+**Write the .env file:**
 
 ```bash
 cp "$WORKSPACE_ROOT/.env.example" "$WORKSPACE_ROOT/.env"
-# Replace "paste-your-key-here" with the actual key they pasted.
-# Use sed or edit the file directly — the placeholder text is literally "paste-your-key-here".
+# Replace the "paste-your-key-here" placeholder with the actual vad_... key.
+# Example (with sed): sed -i.bak 's|paste-your-key-here|REAL_KEY_HERE|' "$WORKSPACE_ROOT/.env" && rm -f "$WORKSPACE_ROOT/.env.bak"
 ```
 
 Then run doctor to confirm everything works:
