@@ -1,31 +1,28 @@
 # exodus-releases
 
-Release feed for the [exodus](https://github.com/bdavis905/agent-dash-groundco) CLI.
+Release feed for the **exodus** CLI — the Claude-Code-driven operator for Grounding Co and related ad workflows.
 
-Each release tagged `exodus-vYYYY.M.D` ships a small overlay zip that updates the CLI and Claude Code skill files inside a client's `grounding-co/` workspace. The overlay never touches `.env`, `state/`, `output/`, or `node_modules`.
+## Installing or updating
 
-## Applying an update
+Paste this into Claude Code, then confirm when it asks:
 
-From inside your `grounding-co/` workspace:
+> Install the latest exodus by following the instructions at https://github.com/bdavis905/exodus-releases/blob/main/INSTALL.md
 
-```bash
-npx exodus update
-```
+That one sentence works whether you're setting up for the first time or pulling down an update. Claude Code will detect which scenario you're in and do the right thing.
 
-Or ask Claude Code to "check for updates" / "update exodus."
+For the full procedure (in case Claude Code asks or you want to review it yourself), see [INSTALL.md](./INSTALL.md).
 
-## Offline / air-gapped
+## What's shipped per release
 
-If the update host is unreachable, download the release zip manually and apply it locally:
+Each release has two zip assets:
 
-```bash
-npx exodus update --file ./exodus-update.zip
-```
+- **`exodus-update-<version>.zip`** (~100 KB) — overlay for existing installs. Only touches `exodus/` and `.claude/skills/`. Your `.env`, `state/`, `output/`, and saved work are left alone.
+- **`grounding-co-fresh-<version>.zip`** (~250 KB) — full workspace scaffold for first-time installs. Excludes `node_modules` (regenerated via `npm install`) and any `.env` file (you create your own from the included `.env.example`).
 
-## Rolling back
+## Manual / offline fallback
 
-Every update creates a timestamped backup under `grounding-co/.backup/`. To restore the most recent:
+If Claude Code can't reach GitHub, download the appropriate asset from the [latest release](https://github.com/bdavis905/exodus-releases/releases/latest) and follow the instructions in INSTALL.md, substituting the local path for the `curl` download.
 
-```bash
-npx exodus update --rollback
-```
+## Reporting issues
+
+Ping Brad directly. This repo only hosts releases — it doesn't accept issues or pull requests. The source is in a separate private repo.
