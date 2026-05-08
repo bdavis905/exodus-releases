@@ -59,28 +59,34 @@ curl -sL https://api.github.com/repos/bdavis905/exodus-releases/releases/latest
 Parse the JSON. You need:
 - `tag_name` (for reporting)
 - `body` (for release-notes summary)
-- For UPDATE: the asset whose name starts with `exodus-update-` — use its `browser_download_url`
+- For UPDATE: the CLI handles asset selection — you only need `tag_name` and `body` for reporting.
 - For FRESH: the asset whose name starts with `exodus-workspace-` — use its `browser_download_url`. If only `grounding-co-fresh-*` is available (release published before May 8 2026), fall back to that and skip Step 4b's token-substitution sub-step (the legacy zip has no placeholders).
 
 ### Step 4a — Apply the overlay (UPDATE path)
 
-Tell the user the version and summarize the release notes briefly. The overlay zip ships its contents at the zip root (no enclosing folder), so it must be extracted **from inside the workspace root**:
+Delegate to the CLI's built-in updater — it handles version checking, backup, extraction, and rollback in one shot:
 
 ```bash
-# WORKSPACE_ROOT is the absolute path captured in Step 1.
-# URL is the exodus-update-*.zip download URL from Step 3.
-
-curl -sL "$URL" -o /tmp/exodus-update.zip
 cd "$WORKSPACE_ROOT"
+npx exodus update --force
+npx exodus doctor
+```
+
+`npx exodus update` writes only to `exodus/` and `.claude/skills/`. The user's `.env`, `state/`, `output/`, and `node_modules/` are preserved by construction. Backups go to `.backup/<timestamp>/` so the user can roll back with `npx exodus update --rollback` if doctor regresses.
+
+If `npx exodus update` is unavailable (e.g., the workspace is corrupted and the CLI itself won't run), fall through to the raw extraction:
+
+```bash
+# Manual fallback only — prefer npx exodus update.
+curl -sL "$URL" -o /tmp/exodus-update.zip
+cd "$WORKSPACE_ROOT/.."
 unzip -o /tmp/exodus-update.zip
 rm /tmp/exodus-update.zip
-
+cd "$WORKSPACE_ROOT"
 node exodus/dist/bin/exodus.js doctor
 ```
 
-The overlay only writes to `exodus/` and `.claude/skills/` inside the workspace. The user's `.env`, `state/`, `output/`, and `node_modules/` are preserved by construction — they're not in the zip.
-
-> **Legacy compatibility note:** older overlay zips (released before May 8 2026) had a top-level `grounding-co/` folder. If `unzip -o` from the workspace root creates a stray `grounding-co/` subfolder, you're applying a pre-May-8 zip. Move its contents up one level (`mv grounding-co/* . && mv grounding-co/.claude . && rmdir grounding-co`) and proceed.
+Note: the overlay zip's top-level folder is `grounding-co/` because the CLI's update command hardcodes that name. For a workspace folder that the customer renamed (e.g., `flow/`), the manual fallback creates a stray `grounding-co/` next to the workspace — move its `exodus/` and `.claude/` contents into the real workspace and remove the stray. This is rare; the CLI updater is the supported path.
 
 After doctor runs, report its result to the user.
 
