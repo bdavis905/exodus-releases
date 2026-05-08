@@ -1,37 +1,52 @@
 # Installing and Updating Exodus via Claude Code
 
-This file is a procedure for **Claude Code** to follow on behalf of a user. If you're a human, you can just paste the following into Claude Code and the rest of this file will execute itself:
+This file is a procedure for **Claude Code** to follow on behalf of a user. If you're a human, copy this into Claude Code and the rest of this file will execute itself:
 
 > Install the latest exodus by following the instructions at https://github.com/bdavis905/exodus-releases/blob/main/INSTALL.md
 
-The same sentence works for a first-time install and for pulling down updates.
+The same sentence works for a first-time install and for pulling down updates. Settings → Claude Code on the dashboard generates a paste-ready version that includes your API key and brand info.
 
 ---
 
 ## Procedure (for Claude Code)
 
-Follow these steps in order. Do not skip or reorder them. Report each step to the user as you go — they should see what you're doing.
+Follow these steps in order. Do not skip or reorder them. Report each step to the user as you go.
+
+### Step 0 — Read brand info from the user's message
+
+The dashboard's "Copy install instructions" button produces a paste sentence containing:
+
+> `BRAND_NAME=<DisplayName>, BRAND_SLUG=<slug>`
+
+If the user's message contains `BRAND_NAME=...` and `BRAND_SLUG=...`, capture both values. They drive the workspace folder name and brand-token substitution in Step 4b.
+
+If the user's message has no `BRAND_NAME`/`BRAND_SLUG` (older paste, or manual install), ask:
+
+> "Which brand is this install for? I need the display name (e.g., 'Flow') and the slug (e.g., 'flow') the dashboard uses for it."
+
+Wait for both before continuing.
 
 ### Step 1 — Detect the install state
 
-Determine whether the user already has an exodus install. Search these paths in order and stop at the first match for a directory containing **both** `exodus/package.json` and `.claude/skills/`:
+Determine whether the user already has an exodus install. Search in this order, stopping at the first match for a directory containing **both** `exodus/package.json` and `.claude/skills/`:
 
-1. Current working directory (if it's called `grounding-co`)
-2. `$HOME/grounding-co`
-3. `$HOME/Documents/grounding-co`
-4. `$HOME/Desktop/grounding-co`
+1. The user's current working directory (most reliable signal — they cd'd here for a reason)
+2. `$HOME/Documents/<BRAND_SLUG>` — the canonical fresh-install location
+3. `$HOME/<BRAND_SLUG>`
+4. `$HOME/Desktop/<BRAND_SLUG>`
+5. Legacy paths from older installs: `$HOME/Documents/grounding-co`, `$HOME/grounding-co`, `$HOME/Desktop/grounding-co`
 
-If found → this is an **UPDATE**. Remember the absolute path to the workspace root (the `grounding-co/` folder itself). Skip to Step 3.
+If found → this is an **UPDATE**. Remember the absolute path as the **workspace root**. Skip to Step 3.
 
-If not found → this is a **FRESH INSTALL**. Continue to Step 2.
+If none match → this is a **FRESH INSTALL**. Continue to Step 2.
 
 ### Step 2 — Pick a location (fresh install only)
 
-Ask the user:
+Suggest the canonical default and let the user override:
 
-> "I don't see an existing exodus install. Where should I install it? I'll suggest `$HOME/Documents/grounding-co` unless you'd rather have it somewhere else."
+> "I don't see an existing exodus install for `<BRAND_SLUG>`. I'll install it at `$HOME/Documents/<BRAND_SLUG>` unless you'd rather have it somewhere else."
 
-Wait for their answer. If they accept the default, use `$HOME/Documents/grounding-co`. If they give a different path, use that. The final path is the **workspace root**. Its parent is the **parent directory**.
+Whatever path they accept becomes the **workspace root**. Its parent is the **parent directory**.
 
 ### Step 3 — Fetch the latest release metadata
 
@@ -41,75 +56,96 @@ Run:
 curl -sL https://api.github.com/repos/bdavis905/exodus-releases/releases/latest
 ```
 
-Parse the JSON response. You need:
+Parse the JSON. You need:
 - `tag_name` (for reporting)
-- `body` (for release notes to summarize to the user)
+- `body` (for release-notes summary)
 - For UPDATE: the asset whose name starts with `exodus-update-` — use its `browser_download_url`
-- For FRESH: the asset whose name starts with `grounding-co-fresh-` — use its `browser_download_url`
+- For FRESH: the asset whose name starts with `exodus-workspace-` — use its `browser_download_url`. If only `grounding-co-fresh-*` is available (release published before May 8 2026), fall back to that and skip Step 4b's token-substitution sub-step (the legacy zip has no placeholders).
 
-### Step 4a — Apply the overlay (UPDATE path only)
+### Step 4a — Apply the overlay (UPDATE path)
 
-Tell the user the version you're installing and summarize the release notes briefly. Then run:
+Tell the user the version and summarize the release notes briefly. The overlay zip ships its contents at the zip root (no enclosing folder), so it must be extracted **from inside the workspace root**:
 
 ```bash
-# Where PARENT is the parent directory of the existing grounding-co/ folder
-# and URL is the exodus-update-*.zip download URL from step 3.
+# WORKSPACE_ROOT is the absolute path captured in Step 1.
+# URL is the exodus-update-*.zip download URL from Step 3.
 
 curl -sL "$URL" -o /tmp/exodus-update.zip
-cd "$PARENT"
+cd "$WORKSPACE_ROOT"
 unzip -o /tmp/exodus-update.zip
 rm /tmp/exodus-update.zip
 
-cd "$WORKSPACE_ROOT"
 node exodus/dist/bin/exodus.js doctor
 ```
 
-The overlay only writes to `exodus/` and `.claude/skills/` inside the existing workspace. Nothing else is modified. The user's `.env`, `state/`, `output/`, and `node_modules/` are preserved by construction — they're not in the zip.
+The overlay only writes to `exodus/` and `.claude/skills/` inside the workspace. The user's `.env`, `state/`, `output/`, and `node_modules/` are preserved by construction — they're not in the zip.
+
+> **Legacy compatibility note:** older overlay zips (released before May 8 2026) had a top-level `grounding-co/` folder. If `unzip -o` from the workspace root creates a stray `grounding-co/` subfolder, you're applying a pre-May-8 zip. Move its contents up one level (`mv grounding-co/* . && mv grounding-co/.claude . && rmdir grounding-co`) and proceed.
 
 After doctor runs, report its result to the user.
 
-### Step 4b — Extract the fresh install (FRESH path only)
+### Step 4b — Extract the fresh install (FRESH path)
 
-Tell the user the version you're installing. Then run:
+Tell the user the version. Then run, using `BRAND_SLUG` from Step 0:
 
 ```bash
-# Where PARENT is the parent of the workspace root,
-# WORKSPACE_ROOT is the target grounding-co/ path,
-# and URL is the grounding-co-fresh-*.zip download URL from step 3.
+# PARENT is the parent of WORKSPACE_ROOT.
+# URL is the exodus-workspace-*.zip download URL from Step 3.
 
 mkdir -p "$PARENT"
-curl -sL "$URL" -o /tmp/grounding-co-fresh.zip
+curl -sL "$URL" -o /tmp/exodus-workspace.zip
 cd "$PARENT"
-unzip -o /tmp/grounding-co-fresh.zip
-rm /tmp/grounding-co-fresh.zip
+unzip -o /tmp/exodus-workspace.zip
+rm /tmp/exodus-workspace.zip
+```
 
+The zip extracts a folder called `_workspace/`. Rename it to the customer's brand slug:
+
+```bash
+mv "$PARENT/_workspace" "$WORKSPACE_ROOT"
+```
+
+**Substitute brand tokens.** The customer-facing docs inside the zip carry `{{BRAND_NAME}}` and `{{BRAND_SLUG}}` placeholders that must be resolved before the workspace is usable. Use `BRAND_NAME` and `BRAND_SLUG` from Step 0 (they are literal strings — no shell expansion or quoting tricks).
+
+```bash
 cd "$WORKSPACE_ROOT"
+for f in README.md PIPELINES.md .claude/skills/scout.md; do
+  if [[ -f "$f" ]]; then
+    sed -i.bak \
+      -e "s|{{BRAND_NAME}}|<BRAND_NAME literal>|g" \
+      -e "s|{{BRAND_SLUG}}|<BRAND_SLUG literal>|g" \
+      "$f" && rm -f "$f.bak"
+  fi
+done
+```
+
+Replace `<BRAND_NAME literal>` and `<BRAND_SLUG literal>` with the actual captured values. If a value contains a `|` character (extremely unlikely for a brand name, impossible for a slug), use a different sed delimiter.
+
+**Install dependencies:**
+
+```bash
 npm install
 ```
 
-Then set up credentials.
+**Set up credentials.**
 
-**First, check if the user's original message already contains an API key.** The key format is `vad_` followed by a long alphanumeric string. If Settings → Claude Code on the dashboard generated the install instructions, the message will include a line like:
+Look in the user's original message for a line like:
 
 > `Use this as my EXODUS_API_KEY: vad_XyZ123...`
 
-If a key is present in the message → use it directly. Skip to the "Write the .env file" step below.
+If a key is present → use it. If not → ask:
 
-If no key is present → ask the user:
+> "I'll need an API key to finish setup. Open https://agent-dash-groundco.vercel.app/settings?tab=claude-code and click **Copy install instructions** — that generates a key."
 
-> "I'll need an API key to finish setup. Open https://agent-dash-groundco.vercel.app/settings?tab=claude-code and click **Copy install instructions** — that generates a key. Or go to Settings → API Keys, generate one manually, and paste it here."
-
-Wait for them to paste the key before continuing.
-
-**Write the .env file:**
+Wait for the key, then write `.env`:
 
 ```bash
 cp "$WORKSPACE_ROOT/.env.example" "$WORKSPACE_ROOT/.env"
-# Replace the "paste-your-key-here" placeholder with the actual vad_... key.
-# Example (with sed): sed -i.bak 's|paste-your-key-here|REAL_KEY_HERE|' "$WORKSPACE_ROOT/.env" && rm -f "$WORKSPACE_ROOT/.env.bak"
+sed -i.bak "s|paste-your-key-here|REAL_KEY_HERE|" "$WORKSPACE_ROOT/.env"
+rm -f "$WORKSPACE_ROOT/.env.bak"
 ```
 
-Then run doctor to confirm everything works:
+**Run doctor:**
 
 ```bash
 cd "$WORKSPACE_ROOT"
@@ -123,23 +159,24 @@ Report its result.
 Tell the user:
 - What was installed (version + path)
 - Whether doctor was green
-- If UPDATE: nothing further — they can keep working. Future updates: they can just say "check for updates" or "update exodus" and you'll handle it.
-- If FRESH: remind them they can now open `README.md` inside the workspace or visit the dashboard at `https://agent-dash-groundco.vercel.app` to start using the pipelines.
+- For UPDATE: nothing further. Future updates: they can say "check for updates" or "update exodus" anytime.
+- For FRESH: their workspace lives at `<WORKSPACE_ROOT>` (e.g., `~/Documents/flow`). They can open `README.md` inside it, or visit https://agent-dash-groundco.vercel.app to start using the pipelines.
 
 ### If anything fails
 
-- **Doctor fails after UPDATE:** the overlay created no backup of its own (Claude Code is driving, not the CLI's built-in updater). Tell the user which check failed, what doctor suggests, and offer to investigate. Do not attempt to roll back unless the user asks.
-- **Download fails:** surface the error. Offer to retry. If GitHub is unreachable, ask the user if they have a local zip file they want to use instead.
-- **Extraction fails mid-way:** the files may be in a half-applied state. Do not pretend it succeeded. Tell the user exactly what ran and what didn't, and ask how they want to proceed.
+- **Doctor fails after UPDATE:** the overlay creates no backup of its own. Tell the user which check failed, what doctor suggests, and offer to investigate. Do not roll back unless asked.
+- **Token substitution missed something:** if the user opens a doc and sees `{{BRAND_NAME}}` or `{{BRAND_SLUG}}` somewhere, run the sed loop again with the correct values. Templating is safe to re-apply.
+- **Download fails:** surface the error. Offer to retry. If GitHub is unreachable, ask the user if they have a local zip file to use.
+- **Extraction fails mid-way:** the files may be in a half-applied state. Do not pretend it succeeded. Tell the user what ran and what didn't, and ask how they want to proceed.
 
 ---
 
 ## What this install contains
 
 - **CLI:** `exodus` — command-line tool for running ad-generation pipelines
-- **Skills:** `.md` files in `.claude/skills/` that Claude Code reads to operate each pipeline (spark, viral, mirror, remix, pulse, intel, scout, image-ads, browse, update, creative-strategy, drive)
+- **Skills:** `.md` files in `.claude/skills/` that Claude Code reads to operate each pipeline (spark, viral, mirror, remix, pulse, intel, scout, image-ads, browse, update, creative-strategy, drive, foundation, genesis)
 - **References:** foundational creative-strategy docs the skills draw on
-- **Docs:** README, PIPELINES.md, CLAUDE.md, ONBOARDING-CHECKLIST.md
-- **State scaffolding:** a brand-profile template the user fills in
+- **Docs:** README, PIPELINES.md, CLAUDE.md, ONBOARDING-CHECKLIST.md (templated to the customer's brand at install time)
+- **State scaffolding:** a brand-profile template the customer fills in
 
 No prompts, no server logic, no secrets. The pipelines themselves run on the hosted dashboard; this is the local operator interface.
