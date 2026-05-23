@@ -12,6 +12,21 @@ The same sentence works for a first-time install and for pulling down updates. S
 
 Follow these steps in order. Do not skip or reorder them. Report each step to the user as you go.
 
+**Adapt commands to the user's operating system.** The shell snippets below are written for **macOS / Linux** (bash/zsh). If the user is on **Windows**, run the PowerShell equivalent — do not paste bash verbatim into PowerShell. Common translations:
+
+| Task | macOS / Linux (bash) | Windows (PowerShell) |
+|------|----------------------|----------------------|
+| Home directory | `$HOME` | `$env:USERPROFILE` |
+| Download a file | `curl -sL <url> -o <path>` | `Invoke-WebRequest <url> -OutFile <path>` (alias `iwr`) |
+| Fetch JSON | `curl -sL <url>` | `Invoke-RestMethod <url>` (alias `irm`) |
+| Unzip | `unzip -o file.zip` | `Expand-Archive -Force file.zip -DestinationPath .` |
+| Move / rename | `mv a b` | `Move-Item a b` |
+| Copy | `cp a b` | `Copy-Item a b` |
+| Temp dir | `/tmp` | `$env:TEMP` |
+| Path separator | `/` | `\` (PowerShell also accepts `/`) |
+
+`node`, `npm`, and `npx` are identical on every OS — run those as written. When in doubt, prefer your own file read/write/edit tools over shell text-munging (`sed`, `for` loops): editing a file directly is OS-agnostic and less error-prone.
+
 ### Step 0 — Read brand info from the user's message
 
 The dashboard's "Copy install instructions" button produces a paste sentence containing:
@@ -47,6 +62,22 @@ Suggest the canonical default and let the user override:
 > "I don't see an existing exodus install for `<BRAND_SLUG>`. I'll install it at `$HOME/Documents/<BRAND_SLUG>` unless you'd rather have it somewhere else."
 
 Whatever path they accept becomes the **workspace root**. Its parent is the **parent directory**.
+
+### Step 2.5 — Ensure Node.js 20+ is installed
+
+Everything from here on needs **Node.js 20 or newer** (`npm`, `npx`, and the CLI all depend on it). The Claude Desktop app does not bundle Node, so check for it:
+
+```bash
+node --version
+```
+
+If `node` is missing, or the major version is below 20, install it and then continue:
+
+- **macOS:** `brew install node` if Homebrew is present; otherwise download the LTS installer from https://nodejs.org and run it.
+- **Windows:** `winget install OpenJS.NodeJS.LTS` if winget is present; otherwise download the LTS installer from https://nodejs.org and run it.
+- **Linux:** use the distro package manager, or https://nodejs.org.
+
+After installing, confirm `node --version` reports v20+ before moving on. If a just-installed Node isn't picked up, the user may need to open a fresh terminal (or restart the Code session). Report what you installed.
 
 ### Step 3 — Fetch the latest release metadata
 
@@ -127,6 +158,8 @@ done
 
 Replace `<BRAND_NAME literal>` and `<BRAND_SLUG literal>` with the actual captured values. If a value contains a `|` character (extremely unlikely for a brand name, impossible for a slug), use a different sed delimiter.
 
+> **Simpler + OS-agnostic:** instead of the `sed` loop, you may just open each of those files and replace the `{{BRAND_NAME}}` / `{{BRAND_SLUG}}` placeholders with your own edit tool. On Windows this is the preferred path — there's no system `sed`.
+
 **Install dependencies:**
 
 ```bash
@@ -150,6 +183,8 @@ cp "$WORKSPACE_ROOT/.env.example" "$WORKSPACE_ROOT/.env"
 sed -i.bak "s|paste-your-key-here|REAL_KEY_HERE|" "$WORKSPACE_ROOT/.env"
 rm -f "$WORKSPACE_ROOT/.env.bak"
 ```
+
+> **Simpler + OS-agnostic:** copy `.env.example` to `.env` and edit the `EXODUS_API_KEY=` line directly with your own tool, swapping in the real key. Preferred on Windows (no system `sed`).
 
 **Run doctor:**
 
@@ -180,7 +215,7 @@ Tell the user:
 ## What this install contains
 
 - **CLI:** `exodus` — command-line tool for running ad-generation pipelines
-- **Skills:** `.md` files in `.claude/skills/` that Claude Code reads to operate each pipeline (spark, viral, mirror, remix, pulse, intel, scout, image-ads, browse, update, creative-strategy, drive, foundation, genesis)
+- **Skills:** `.md` files in `.claude/skills/` that Claude Code reads to operate each pipeline (spark, viral, mirror, remix, pulse, intel, scout, image-ads, images, template, meme, creative, pixar, swipe, browse, update, creative-strategy, strategist-mode, drive, foundation, genesis, and the primer-clone variants)
 - **References:** foundational creative-strategy docs the skills draw on
 - **Docs:** README, PIPELINES.md, CLAUDE.md, ONBOARDING-CHECKLIST.md (templated to the customer's brand at install time)
 - **State scaffolding:** a brand-profile template the customer fills in
