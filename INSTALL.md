@@ -1,16 +1,22 @@
 # Installing and Updating Exodus via Claude Code
 
-This file is a procedure for **Claude Code** to follow on behalf of a user. If you're a human, copy this into Claude Code and the rest of this file will execute itself:
+**Exodus** is a command-line tool for running ad-generation pipelines. This page is its install guide. You install it into a project folder on your own computer; the pipelines themselves run on the hosted Exodus dashboard (the one you signed up for) — this is just the local operator interface.
 
-> Install the latest exodus by following the instructions at https://github.com/bdavis905/exodus-releases/blob/main/INSTALL.md
+If you use **Claude Code** (the Desktop app's Code tab, or the CLI), it can carry out the steps below for you. Generate your personalized install snippet from **Settings → Claude Code** on the dashboard — the **Copy install instructions** button builds a snippet that already includes your API key and brand. Paste that into Claude Code. The same snippet works for a first-time install and for pulling down updates.
 
-The same sentence works for a first-time install and for pulling down updates. Settings → Claude Code on the dashboard generates a paste-ready version that includes your API key and brand info.
+**What gets set up, and why it's safe to approve:**
+
+- The Exodus workspace is downloaded into a new folder you choose, and `npm install` runs there.
+- Your API key is written into a local `.env` file **inside that folder** so the CLI can reach your dashboard. The key stays on your machine.
+- The pipeline **skills** (`.md` files) are added to that folder's `.claude/` directory. These are **project-local**: they only apply when you work inside this folder, and they do **not** change your global Claude Code setup or how Claude behaves in any other project.
+
+Claude Code may ask your permission for some of these steps (writing the `.env`, adding the skill files). That's expected — approving them is what installs the tool.
 
 ---
 
-## Procedure (for Claude Code)
+## Steps for Claude Code
 
-Follow these steps in order. Do not skip or reorder them. Report each step to the user as you go.
+Work through these in order. Don't skip or reorder them. Report each step to the user as you go.
 
 **Adapt commands to the user's operating system.** The shell snippets below are written for **macOS / Linux** (bash/zsh). If the user is on **Windows**, run the PowerShell equivalent — do not paste bash verbatim into PowerShell. Common translations:
 
@@ -25,7 +31,7 @@ Follow these steps in order. Do not skip or reorder them. Report each step to th
 | Temp dir | `/tmp` | `$env:TEMP` |
 | Path separator | `/` | `\` (PowerShell also accepts `/`) |
 
-`node`, `npm`, and `npx` are identical on every OS — run those as written. When in doubt, prefer your own file read/write/edit tools over shell text-munging (`sed`, `for` loops): editing a file directly is OS-agnostic and less error-prone.
+`node`, `npm`, and `npx` are identical on every OS — run those as written. **Run the Exodus CLI as `node exodus/dist/bin/exodus.js <command>` during install and update**, not `npx exodus <command>`. The `node` form runs the already-installed local build directly; some sandboxed environments block `npx` for a package they don't yet recognize, even when it's already on disk. When in doubt, prefer your own file read/write/edit tools over shell text-munging (`sed`, `for` loops): editing a file directly is OS-agnostic and less error-prone.
 
 ### Step 0 — Read brand info from the user's message
 
@@ -43,7 +49,7 @@ Wait for both before continuing.
 
 ### Step 1 — Detect the install state
 
-Determine whether the user already has an exodus install. Search in this order, stopping at the first match for a directory containing **both** `exodus/package.json` and `.claude/skills/`:
+Determine whether the user already has an exodus install. Search in this order, stopping at the first match for a directory containing `exodus/package.json`:
 
 1. The user's current working directory (most reliable signal — they cd'd here for a reason)
 2. `$HOME/Documents/<BRAND_SLUG>` — the canonical fresh-install location
@@ -99,16 +105,16 @@ Delegate to the CLI's built-in updater — it handles version checking, backup, 
 
 ```bash
 cd "$WORKSPACE_ROOT"
-npx exodus update --force
-npx exodus doctor
+node exodus/dist/bin/exodus.js update --force
+node exodus/dist/bin/exodus.js doctor
 ```
 
-`npx exodus update` writes only to `exodus/` and `.claude/skills/`. The user's `.env`, `state/`, `output/`, and `node_modules/` are preserved by construction. Backups go to `.backup/<timestamp>/` so the user can roll back with `npx exodus update --rollback` if doctor regresses.
+`update` writes only to `exodus/` and `.claude/skills/`. The user's `.env`, `state/`, `output/`, and `node_modules/` are preserved by construction. Backups go to `.backup/<timestamp>/` so the user can roll back with `node exodus/dist/bin/exodus.js update --rollback` if doctor regresses.
 
-If `npx exodus update` is unavailable (e.g., the workspace is corrupted and the CLI itself won't run), fall through to the raw extraction:
+If the CLI itself won't run (e.g., the workspace is corrupted), fall through to the raw extraction:
 
 ```bash
-# Manual fallback only — prefer npx exodus update.
+# Manual fallback only — prefer the CLI updater above.
 curl -sL "$URL" -o /tmp/exodus-update.zip
 cd "$WORKSPACE_ROOT/.."
 unzip -o /tmp/exodus-update.zip
@@ -195,13 +201,15 @@ node exodus/dist/bin/exodus.js doctor
 
 Report its result.
 
-### Step 5 — Summary
+### Step 5 — Finish: start a fresh session so the skills load
+
+The pipeline skills were just written into the workspace's `.claude/` folder, and Claude Code only loads skills **when a session starts**. They are therefore **not active in this current session** — the user must open a new one.
 
 Tell the user:
-- What was installed (version + path)
-- Whether doctor was green
-- For UPDATE: nothing further. Future updates: they can say "check for updates" or "update exodus" anytime.
-- For FRESH: their workspace lives at `<WORKSPACE_ROOT>` (e.g., `~/Documents/flow`). They can open `README.md` inside it, or visit https://agent-dash-groundco.vercel.app to start using the pipelines.
+- What was installed (version + path) and whether doctor was green.
+- **Do this next:** open a **new Claude Code session in the workspace folder** (`<WORKSPACE_ROOT>`, e.g. `~/Documents/flow`) so the pipeline skills load. Until they restart there, the pipelines won't be available.
+- Once they're in that fresh session, they can just say what they want in plain English (e.g. "I want to write some ads about …") to start, or open `README.md` in the folder. The dashboard is at https://agent-dash-groundco.vercel.app.
+- For UPDATE: same — restart the session in the workspace folder so the refreshed skills load. Future updates: they can say "check for updates" or "update exodus" anytime.
 
 ### If anything fails
 
