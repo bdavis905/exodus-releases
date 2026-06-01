@@ -174,23 +174,38 @@ npm install
 
 **Set up credentials.**
 
-Look in the user's original message for a line like:
+Look in the user's original message for the two config lines the dashboard's
+"Copy install instructions" button includes:
 
-> `Use this as my EXODUS_API_KEY: vad_XyZ123...`
+> `EXODUS_API_URL=https://<backend>.convex.site`
+> `EXODUS_API_KEY=vad_XyZ123...`
 
-If a key is present → use it. If not → ask:
+If both are present → use them. If the URL is missing (older paste / manual
+install) → ask which environment they signed up on and use:
+- **xo.copycoders.ai** (customers) → `https://accomplished-tapir-106.convex.site`
+- **dev.xo.copycoders.ai** (internal team) → `https://good-cod-360.convex.site`
 
-> "I'll need an API key to finish setup. Open https://agent-dash-groundco.vercel.app/settings?tab=claude-code and click **Copy install instructions** — that generates a key."
+If the key is missing → ask:
 
-Wait for the key, then write `.env`:
+> "I'll need an API key to finish setup. On your dashboard open **Settings → Claude Code** and click **Copy install instructions** — that generates a key and the matching backend URL."
+
+Then write `.env`. **Copy `.env.example` to `.env` and set BOTH lines** —
+`EXODUS_API_URL` (replacing the `https://YOUR-EXODUS-BACKEND.convex.site`
+placeholder) and `EXODUS_API_KEY` (replacing `paste-your-key-here`):
 
 ```bash
 cp "$WORKSPACE_ROOT/.env.example" "$WORKSPACE_ROOT/.env"
-sed -i.bak "s|paste-your-key-here|REAL_KEY_HERE|" "$WORKSPACE_ROOT/.env"
+sed -i.bak \
+  -e "s|https://YOUR-EXODUS-BACKEND.convex.site|REAL_API_URL_HERE|" \
+  -e "s|paste-your-key-here|REAL_KEY_HERE|" \
+  "$WORKSPACE_ROOT/.env"
 rm -f "$WORKSPACE_ROOT/.env.bak"
 ```
 
-> **Simpler + OS-agnostic:** copy `.env.example` to `.env` and edit the `EXODUS_API_KEY=` line directly with your own tool, swapping in the real key. Preferred on Windows (no system `sed`).
+> **Simpler + OS-agnostic (preferred on Windows):** copy `.env.example` to `.env`
+> and edit the `EXODUS_API_URL=` and `EXODUS_API_KEY=` lines directly with your
+> own tool. Getting `EXODUS_API_URL` right is what points the CLI at the correct
+> backend — a mismatch is the #1 cause of a 401 from `whoami`.
 
 **Run doctor:**
 
@@ -208,7 +223,7 @@ The pipeline skills were just written into the workspace's `.claude/` folder, an
 Tell the user:
 - What was installed (version + path) and whether doctor was green.
 - **Do this next:** open a **new Claude Code session in the workspace folder** (`<WORKSPACE_ROOT>`, e.g. `~/Documents/flow`) so the pipeline skills load. Until they restart there, the pipelines won't be available.
-- Once they're in that fresh session, they can just say what they want in plain English (e.g. "I want to write some ads about …") to start, or open `README.md` in the folder. The dashboard is at https://agent-dash-groundco.vercel.app.
+- Once they're in that fresh session, they can just say what they want in plain English (e.g. "I want to write some ads about …") to start, or open `README.md` in the folder. Your dashboard is at https://xo.copycoders.ai (or https://dev.xo.copycoders.ai for the internal team).
 - For UPDATE: same — restart the session in the workspace folder so the refreshed skills load. Future updates: they can say "check for updates" or "update exodus" anytime.
 
 ### If anything fails
