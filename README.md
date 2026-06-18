@@ -12,6 +12,10 @@ That one sentence works whether you're setting up for the first time or pulling 
 
 For the full procedure (in case Claude Code asks or you want to review it yourself), see [INSTALL.md](./INSTALL.md).
 
+### One install for Exodus **and** Genesis
+
+To set up Exodus (automatic transmission) **and** standalone Genesis (manual transmission) together in one folder — a single `.env` paste carries both keys — point your agent at [INSTALL_FOR_AGENTS.md](./INSTALL_FOR_AGENTS.md). It's agent-first, key-free, and safe to re-run.
+
 ## What's shipped per release
 
 Each release has two zip assets:
