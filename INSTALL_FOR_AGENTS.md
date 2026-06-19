@@ -39,14 +39,17 @@ or nodejs.org; Linux: distro package manager) and confirm `node --version` is v2
 before continuing. A freshly installed Node may need a new terminal/session.
 
 ## 5. Install the Exodus CLI + skills (into this folder)
-Fetch the latest release metadata:
+This is the **internal dev/beta channel** — install the latest **beta (prerelease)**
+build. Fetch the release list (it includes prereleases; `releases/latest` would skip
+them and give you the older stable build):
 
 ```bash
-curl -sL https://api.github.com/repos/bdavis905/exodus-releases/releases/latest
+curl -sL "https://api.github.com/repos/bdavis905/exodus-releases/releases?per_page=10"
 ```
 
-From the JSON, take `tag_name` (report it) and the asset whose name starts with
-`exodus-workspace-` — use its `browser_download_url` as `$URL`. Download and unpack
+Take the **newest** release in the list (the first element — currently the
+`*-beta.*` prerelease). Report its `tag_name`, and use the `browser_download_url` of
+its asset whose name starts with `exodus-workspace-` as `$URL`. Download and unpack
 it **into this folder**:
 
 ```bash
@@ -97,13 +100,14 @@ Now that the keys are in `.env`, run (substituting `BRAND_SLUG`):
 
 ```bash
 node exodus/dist/bin/exodus.js brand use <BRAND_SLUG>
-node exodus/dist/bin/exodus.js update
+node exodus/dist/bin/exodus.js update --beta
 node exodus/dist/bin/exodus.js whoami
 node exodus/dist/bin/exodus.js doctor
 ```
 
 - `brand use` creates the brand's subfolder and pulls its profile.
-- `update` gives every other brand the user owns its own folder.
+- `update --beta` keeps you on the **beta channel** (plain `update` would pull the
+  older stable build and downgrade) and gives every other brand the user owns its folder.
 - `whoami` should resolve to the right brand with the foundation **READY**.
 - `doctor` should be all green.
 
