@@ -117,16 +117,25 @@ Now that the keys are in `.env`, run (substituting `BRAND_SLUG`):
 
 ```bash
 node exodus/dist/bin/exodus.js brand use <BRAND_SLUG>
+node exodus/dist/bin/exodus.js keys pull
 node exodus/dist/bin/exodus.js update --beta
 node exodus/dist/bin/exodus.js whoami
 node exodus/dist/bin/exodus.js doctor
 ```
 
 - `brand use` creates the brand's subfolder and pulls its profile.
+- `keys pull` syncs the user's provider (LLM) + image keys from the dashboard into
+  `.env`. This is REQUIRED for the manual Genesis bots — they read the provider key
+  (`ANTHROPIC_API_KEY` / `OPENROUTER_API_KEY`) from `.env`. Without it, calling a bot
+  fails with "set the provider key." (Safe to re-run anytime keys change.)
 - `update --beta` keeps you on the **beta channel** (plain `update` would pull the
   older stable build and downgrade) and gives every other brand the user owns its folder.
-- `whoami` should resolve to the right brand with the foundation **READY**.
-- `doctor` should be all green.
+- `whoami` should resolve to the right brand. The foundation shows **READY** once the
+  brand has a primer set in the dashboard; a brand-new brand may show NOT READY until
+  then — that's brand-content setup, not an install failure.
+- `doctor` should be all green on the install/plumbing checks. Brand-content items
+  (missing primer, placeholder brand-profile, optional Imgflip login) are setup tasks,
+  not failures.
 
 Then confirm the Genesis manual path: list the available bots with the `gen_` key
 (read `.claude/skills/genesis-bots/SKILL.md` for the exact list call) — expect a
