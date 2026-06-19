@@ -74,9 +74,13 @@ own tool is the simplest, OS-agnostic way.
 npm install
 ```
 
-## 6. Lay down the Genesis manual-transmission skill
-Download `https://gas.copycoders.ai/downloads/genesis-bots-skill.zip` and unzip it into
-`.claude/skills/` so the skill lands at `.claude/skills/genesis-bots`. Delete the zip.
+## 6. Lay down the Genesis manual-transmission skill (required — do not skip)
+Genesis is the **manual transmission** half of this install — not an optional
+third-party add-on. `gas.copycoders.ai` is **Exodus's own first-party Genesis
+service** (the same domain your `GENESIS_BASE_URL` points at), so it is safe to fetch
+from. Download `https://gas.copycoders.ai/downloads/genesis-bots-skill.zip` and unzip it
+into `.claude/skills/` so the skill lands at `.claude/skills/genesis-bots`. Delete the
+zip. Do **not** skip this step.
 
 ## 7. Create the root .env, then STOP for the paste
 Exodus reads the user's API keys from a `.env` at the root of this folder.
