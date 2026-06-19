@@ -24,9 +24,9 @@ user to open a new empty folder for Exodus instead.
 
 ## 2. Capture brand info
 The dashboard's install snippet includes a line like
-`BRAND_NAME=<DisplayName>, BRAND_SLUG=<slug>`. Capture both values — they drive the
-brand-token substitution in step 5 and the `brand use` call in step 8. If they're
-missing (older paste), ask the user for the brand display name and slug.
+`BRAND_NAME=<DisplayName>, BRAND_SLUG=<slug>`. Capture both values — the `BRAND_SLUG`
+drives the `brand use` call in step 8. If they're missing (older paste), ask the user
+for the brand display name and slug.
 
 ## 3. Idempotency check (safe re-run)
 If `./.env` already contains `EXODUS_API_KEY=` AND `GENESIS_API_KEY=`, the install is
@@ -58,18 +58,23 @@ unzip -o /tmp/exodus-workspace.zip -d /tmp/exodus-unpack
 rm /tmp/exodus-workspace.zip
 ```
 
-The zip contains a single top-level `_workspace/` folder. **Move its entire contents
-(including dotfiles like `.claude/` and `.env.example`) into the current folder**, then
-remove the leftover `_workspace/`. (Use your file tools; on bash:
-`mv /tmp/exodus-unpack/_workspace/* /tmp/exodus-unpack/_workspace/.[!.]* . && rm -rf /tmp/exodus-unpack`.)
+The zip contains a single top-level `_workspace/` folder. **Move its entire contents —
+INCLUDING dotfiles (`.claude/`, `.env.example`, `.exodus/`, `.gitignore`) — into the
+current folder**, then remove the leftover `_workspace/`. Use `rsync` (it copies
+dotfiles and works the same in bash and zsh — a plain `mv .../*` silently skips
+dotfiles in zsh):
+
+```bash
+rsync -a /tmp/exodus-unpack/_workspace/ . && rm -rf /tmp/exodus-unpack
+```
+
 This single move lays down BOTH the `exodus-*` skills AND the Genesis manual-transmission
 skill (`genesis-bots`) — Genesis ships inside this bundle, so there is no separate
 download (see step 6).
 
-**Substitute brand tokens** using the captured `BRAND_NAME` / `BRAND_SLUG` (literal
-strings). In `README.md`, `PIPELINES.md`, and `.claude/skills/scout.md`, replace every
-`{{BRAND_NAME}}` and `{{BRAND_SLUG}}` placeholder. Editing the files directly with your
-own tool is the simplest, OS-agnostic way.
+(No brand-token substitution is needed: the shipped docs ship brand-neutral, and the CLI
+resolves your `BRAND_NAME` / `BRAND_SLUG` itself during `brand use` / `update`. Don't go
+hunting for `{{BRAND_NAME}}` placeholders — there aren't any in the docs.)
 
 **Install dependencies:**
 
