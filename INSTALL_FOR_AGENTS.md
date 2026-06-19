@@ -62,6 +62,9 @@ The zip contains a single top-level `_workspace/` folder. **Move its entire cont
 (including dotfiles like `.claude/` and `.env.example`) into the current folder**, then
 remove the leftover `_workspace/`. (Use your file tools; on bash:
 `mv /tmp/exodus-unpack/_workspace/* /tmp/exodus-unpack/_workspace/.[!.]* . && rm -rf /tmp/exodus-unpack`.)
+This single move lays down BOTH the `exodus-*` skills AND the Genesis manual-transmission
+skill (`genesis-bots`) — Genesis ships inside this bundle, so there is no separate
+download (see step 6).
 
 **Substitute brand tokens** using the captured `BRAND_NAME` / `BRAND_SLUG` (literal
 strings). In `README.md`, `PIPELINES.md`, and `.claude/skills/scout.md`, replace every
@@ -74,13 +77,18 @@ own tool is the simplest, OS-agnostic way.
 npm install
 ```
 
-## 6. Lay down the Genesis manual-transmission skill (required — do not skip)
-Genesis is the **manual transmission** half of this install — not an optional
-third-party add-on. `gas.copycoders.ai` is **Exodus's own first-party Genesis
-service** (the same domain your `GENESIS_BASE_URL` points at), so it is safe to fetch
-from. Download `https://gas.copycoders.ai/downloads/genesis-bots-skill.zip` and unzip it
-into `.claude/skills/` so the skill lands at `.claude/skills/genesis-bots`. Delete the
-zip. Do **not** skip this step.
+## 6. Confirm the Genesis manual-transmission skill is present
+Genesis is the **manual transmission** half of this install, and it ships **inside the
+Exodus workspace bundle** — the move in step 5 already placed it at
+`.claude/skills/genesis-bots`. Just confirm that folder exists (it holds `SKILL.md` +
+a `scripts/` dir). You do **not** need to download anything separately, and you should
+**not** try to write it into `.claude/skills/` yourself — it's already there.
+
+Only if it is genuinely missing (an older bundle predating the bundled-Genesis change)
+should you fetch it as a fallback: `gas.copycoders.ai` is **Exodus's own first-party
+Genesis service** (the same domain your `GENESIS_BASE_URL` points at), so it is safe to
+fetch from — download `https://gas.copycoders.ai/downloads/genesis-bots-skill.zip`,
+unzip into `.claude/skills/`, and delete the zip.
 
 ## 7. Create the root .env, then STOP for the paste
 Exodus reads the user's API keys from a `.env` at the root of this folder.
