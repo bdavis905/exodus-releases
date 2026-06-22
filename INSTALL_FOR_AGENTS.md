@@ -47,11 +47,7 @@ After the user confirms:
   non-empty bot list.
 Report both results to the user.
 
-## 7. (Optional, last) Max's skill pack
-Ask: "Were you in Max's workshop and want his extra skills?" Only if yes, follow
-his pack's install prompt. It coexists with Exodus + Genesis (separate namespaces).
-
-## 8. Done
+## 7. Done
 Remind the user that skills load at session start — open a new session (or /clear)
 before running pipelines. For Exodus image generation and bot LLM usage, add the
 Anthropic/OpenRouter and KIE keys in the dashboard (not the .env); Exodus syncs the
