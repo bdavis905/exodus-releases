@@ -141,11 +141,7 @@ Then confirm the Genesis manual path: list the available bots with the `gen_` ke
 (read `.claude/skills/genesis-bots/SKILL.md` for the exact list call) — expect a
 non-empty bot list. Report all results to the user.
 
-## 9. (Optional, last) Max's skill pack
-Ask: "Were you in Max's workshop and want his extra skills?" Only if yes, follow his
-pack's install prompt. It coexists with Exodus + Genesis (separate skill namespaces).
-
-## 10. Done
+## 9. Done
 Skills load at **session start** — tell the user to restart Claude Code in this same
 folder (or `/clear`) before running pipelines. For Exodus image generation and bot LLM
 usage, add the Anthropic/OpenRouter and KIE keys **in the dashboard** (not the `.env`);
