@@ -1,3 +1,5 @@
+> **This guide is out of date.** Exodus moved to npm and no longer installs from zip downloads. For a new install run `npx @aicopycoders/exodus init` (Node.js 20+), then use `npx @aicopycoders/exodus <command>`. Everything below is kept for the record only.
+
 # Installing and Updating Exodus via Claude Code
 
 **Exodus** is a command-line tool for running ad-generation pipelines. This page is its install guide. You install it into a project folder on your own computer; the pipelines themselves run on the hosted Exodus dashboard (the one you signed up for) — this is just the local operator interface.
