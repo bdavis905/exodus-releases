@@ -1,32 +1,41 @@
-# exodus-releases
+# exodus-releases — retired
 
-Release feed for the **exodus** CLI — the Claude-Code-driven operator for Grounding Co and related ad workflows.
+**Exodus no longer ships from this page.** It lives on npm now, and it keeps
+itself up to date from there. Nothing new will ever be published here.
 
-## Installing or updating
+## Installing Exodus today
 
-Paste this into Claude Code, then confirm when it asks:
+You need Node.js 20 or newer. Then, in the folder you want to work from:
 
-> Install the latest exodus by following the instructions at https://github.com/bdavis905/exodus-releases/blob/main/INSTALL.md
+```
+npx @aicopycoders/exodus init
+```
 
-That one sentence works whether you're setting up for the first time or pulling down an update. Claude Code will detect which scenario you're in and do the right thing.
+Every command from then on starts the same way:
 
-For the full procedure (in case Claude Code asks or you want to review it yourself), see [INSTALL.md](./INSTALL.md).
+```
+npx @aicopycoders/exodus <command>
+```
 
-### One install for Exodus **and** Genesis
+Try `npx @aicopycoders/exodus --help` for the list.
 
-To set up Exodus (automatic transmission) **and** standalone Genesis (manual transmission) together in one folder — a single `.env` paste carries both keys — point your agent at [INSTALL_FOR_AGENTS.md](./INSTALL_FOR_AGENTS.md). It's agent-first, key-free, and safe to re-run.
+## If you installed from this page in the past
 
-## What's shipped per release
+Your copy checks this page for updates. The last release here,
+[exodus-v2026.9.2100](https://github.com/bdavis905/exodus-releases/releases/tag/exodus-v2026.9.2100),
+is a signpost: your Exodus will offer it as an update, and once you accept it
+any old-style `npx exodus <command>` you type is handed over to the npm version
+automatically. Your skills, reference docs, `.env` and saved work are left as
+they are. Read the release notes on that page for the one thing to know before
+your first refresh with the new version.
 
-Each release has two zip assets:
+## The install guides that used to live here
 
-- **`exodus-update-<version>.zip`** (~100 KB) — overlay for existing installs. Only touches `exodus/` and `.claude/skills/`. Your `.env`, `state/`, `output/`, and saved work are left alone.
-- **`grounding-co-fresh-<version>.zip`** (~250 KB) — full workspace scaffold for first-time installs. Excludes `node_modules` (regenerated via `npm install`) and any `.env` file (you create your own from the included `.env.example`).
-
-## Manual / offline fallback
-
-If Claude Code can't reach GitHub, download the appropriate asset from the [latest release](https://github.com/bdavis905/exodus-releases/releases/latest) and follow the instructions in INSTALL.md, substituting the local path for the `curl` download.
+`INSTALL.md` and `INSTALL_FOR_AGENTS.md` describe the old zip-download method.
+They are kept for the record only. Do not follow them for a new install; use
+the npm command above.
 
 ## Reporting issues
 
-Ping Brad directly. This repo only hosts releases — it doesn't accept issues or pull requests. The source is in a separate private repo.
+Ping Brad directly. This repo only hosts the old releases; it doesn't accept
+issues or pull requests.
