@@ -1,3 +1,5 @@
+> **This guide is out of date.** Exodus moved to npm and no longer installs from zip downloads. For a new install run `npx @aicopycoders/exodus init` (Node.js 20+), then use `npx @aicopycoders/exodus <command>`. Everything below is kept for the record only.
+
 # Install Exodus + Genesis (for your coding agent)
 
 You are an AI coding agent setting up Exodus (automatic transmission) and Genesis
